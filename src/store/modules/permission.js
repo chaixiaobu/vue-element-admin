@@ -1,5 +1,5 @@
 import { asyncRoutes, constantRoutes } from '@/router'
-
+// import
 /**
  * Use meta.role to determine if the current user has permission
  * @param roles
@@ -46,12 +46,13 @@ const mutations = {
   }
 }
 
+// TODO: 接口查询路由信息
 const actions = {
   generateRoutes({ commit }, roles) {
     return new Promise(resolve => {
       let accessedRoutes
       if (roles.includes('admin')) {
-        accessedRoutes = asyncRoutes || []
+        accessedRoutes = asyncRoutes || [] // asyncRoutes暂时用本地
       } else {
         accessedRoutes = filterAsyncRoutes(asyncRoutes, roles)
       }

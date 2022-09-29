@@ -1,38 +1,7 @@
-import { asyncRoutes, constantRoutes } from '@/router'
-// import
-/**
- * Use meta.role to determine if the current user has permission
- * @param roles
- * @param route
- */
-function hasPermission(roles, route) {
-  if (route.meta && route.meta.roles) {
-    return roles.some(role => route.meta.roles.includes(role))
-  } else {
-    return true
-  }
-}
-
-/**
- * Filter asynchronous routing tables by recursion
- * @param routes asyncRoutes
- * @param roles
- */
-export function filterAsyncRoutes(routes, roles) {
-  const res = []
-
-  routes.forEach(route => {
-    const tmp = { ...route }
-    if (hasPermission(roles, tmp)) {
-      if (tmp.children) {
-        tmp.children = filterAsyncRoutes(tmp.children, roles)
-      }
-      res.push(tmp)
-    }
-  })
-
-  return res
-}
+import { constantRoutes } from '@/router'
+import { getRoutes } from '@/api/user'
+import Layout from '@/layout/index'
+import ParentView from '@/components/ParentView'
 
 const state = {
   routes: [],
@@ -48,20 +17,77 @@ const mutations = {
 
 // TODO: 接口查询路由信息
 const actions = {
-  generateRoutes({ commit }, roles) {
+  async generateRoutes({ commit }, roles) {
+    // const params = {
+    //   roles: roles.join(',')
+    // }
+    const res = await getRoutes()
+    const { code, data } = res
+    if (code !== 200) return
+    const accessedRoutes = filterAsyncRouter(data)
+    // 404 page must be placed at the end !!!
+    accessedRoutes.push({ path: '*', redirect: '/404', hidden: true })
     return new Promise(resolve => {
-      let accessedRoutes
-      if (roles.includes('admin')) {
-        accessedRoutes = asyncRoutes || [] // asyncRoutes暂时用本地
-      } else {
-        accessedRoutes = filterAsyncRoutes(asyncRoutes, roles)
-      }
       commit('SET_ROUTES', accessedRoutes)
       resolve(accessedRoutes)
     })
   }
 }
+// 遍历后台传来的路由字符串，转换为组件对象
+function filterAsyncRouter(asyncRouterMap, lastRouter = false, type = false) {
+  return asyncRouterMap.filter(route => {
+    if (type && route.children) {
+      route.children = filterChildren(route.children)
+    }
+    if (route.component) {
+      // 给route增加组件路径
+      route.componentPath = route.component
+      // Layout ParentView 组件特殊处理
+      if (route.component === 'Layout') {
+        route.component = Layout
+      } else if (route.component === 'ParentView') {
+        route.component = ParentView
+      } else {
+        route.component = loadView(route.component)
+      }
+    }
+    if (route.children != null && route.children && route.children.length) {
+      route.children = filterAsyncRouter(route.children, route, type)
+    } else {
+      delete route['children']
+      delete route['redirect']
+    }
+    return true
+  })
+}
 
+function filterChildren(childrenMap, lastRouter = false) {
+  var children = []
+  childrenMap.forEach((el, index) => {
+    if (el.children && el.children.length) {
+      if (el.component === 'ParentView') {
+        el.children.forEach(c => {
+          c.path = el.path + '/' + c.path
+          if (c.children && c.children.length) {
+            children = children.concat(filterChildren(c.children, c))
+            return
+          }
+          children.push(c)
+        })
+        return
+      }
+    }
+    if (lastRouter) {
+      el.path = lastRouter.path + '/' + el.path
+    }
+    children = children.concat(el)
+  })
+  return children
+}
+
+export const loadView = (view) => { // 路由懒加载
+  return (resolve) => require([`@/views/${view}`], resolve)
+}
 export default {
   namespaced: true,
   state,

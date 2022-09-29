@@ -1,0 +1,37 @@
+{
+  "data": [
+    {
+      "path": "/",
+      "component": "Layout",
+      "redirect": "/permission",
+      "alwaysShow": true,
+      "name": "Permission",
+      "meta": {
+        "title": "Permission",
+        "icon": "lock",
+        "roles": [ "admin", "editor" ]
+      },
+      "children": [
+        {
+          "path": "permission",
+          "component": "permission/directive",
+          "name": "DirectivePermission",
+          "hidden": true,
+          "meta": {
+            "title": "Directive Permission"
+          }
+        },
+        {
+          "path": "role",
+          "component": "permission/role",
+          "name": "RolePermission",
+          "meta": {
+            "title": "Role Permission",
+            "roles": ["admin"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

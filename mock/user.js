@@ -1,4 +1,4 @@
-
+const asyncRoutes = require('./routes')
 const tokens = {
   admin: {
     token: 'admin-token'
@@ -23,6 +23,8 @@ const users = {
   }
 }
 
+const routes = asyncRoutes.data
+
 module.exports = [
   // user login
   {
@@ -41,7 +43,7 @@ module.exports = [
       }
 
       return {
-        code: 20000,
+        code: 200,
         data: token
       }
     }
@@ -64,8 +66,29 @@ module.exports = [
       }
 
       return {
-        code: 20000,
+        code: 200,
         data: info
+      }
+    }
+  },
+  // get user routes
+  {
+    url: '/vue-element-admin/user/routes\.*',
+    type: 'get',
+    response: config => {
+      const info = users['admin-token']
+
+      // mock error
+      if (!info) {
+        return {
+          code: 50008,
+          message: 'Login failed, unable to get user details.'
+        }
+      }
+
+      return {
+        code: 200,
+        data: routes
       }
     }
   },
@@ -76,7 +99,7 @@ module.exports = [
     type: 'post',
     response: _ => {
       return {
-        code: 20000,
+        code: 200,
         data: 'success'
       }
     }

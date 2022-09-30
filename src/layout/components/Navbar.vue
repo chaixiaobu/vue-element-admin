@@ -1,8 +1,11 @@
 <template>
   <div class="navbar">
-    <hamburger id="hamburger-container" :is-active="sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
+    <logo v-if="showLogo" :collapse="isCollapse" />
+    <div class="navbar-center">
+      <hamburger id="hamburger-container" :is-active="sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
 
-    <breadcrumb id="breadcrumb-container" class="breadcrumb-container" />
+      <breadcrumb id="breadcrumb-container" class="breadcrumb-container" />
+    </div>
 
     <div v-if="!isProduction" class="right-menu">
 
@@ -23,11 +26,13 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import Logo from './Sidebar/Logo'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
 
 export default {
   components: {
+    Logo,
     Breadcrumb,
     Hamburger
   },
@@ -37,7 +42,13 @@ export default {
       'avatar',
       'device',
       'isProduction'
-    ])
+    ]),
+    showLogo() {
+      return this.$store.state.settings.sidebarLogo
+    },
+    isCollapse() {
+      return !this.sidebar.opened
+    }
   },
   methods: {
     toggleSideBar() {
@@ -58,7 +69,10 @@ export default {
   position: relative;
   background: #fff;
   box-shadow: 0 1px 4px rgba(0,21,41,.08);
-
+  display: flex;
+  .navbar-center {
+    flex: 1;
+  }
   .hamburger-container {
     line-height: 46px;
     height: 100%;

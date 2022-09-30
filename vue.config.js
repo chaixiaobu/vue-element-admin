@@ -120,5 +120,12 @@ module.exports = {
           config.optimization.runtimeChunk('single')
         }
       )
+  },
+  css: {
+    loaderOptions: {
+      sass: {
+        prependData: `@import "@/styles/variables.scss";`
+      }
+    }
   }
 }
